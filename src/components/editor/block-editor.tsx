@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createExercise } from "@/app/actions/editor";
 import { parsePrescription, type ParseResult } from "@/lib/calc/shorthand";
@@ -475,7 +476,11 @@ export function BlockEditor({ data }: { data: EditorData }) {
                             <span className={wo?.plannedDate === data.today ? "font-semibold text-accent" : "text-muted"}>
                               {wo?.plannedDate ? formatShortDate(wo.plannedDate) : `Week ${wi + 1}`}
                             </span>
-                            {wo?.completed && <span className="text-ok">done · {wo.loggedSets}</span>}
+                            {wo && (wo.completed || wo.loggedSets > 0) && (
+                              <Link href={`/coach/sessions/${wo.id}`} className={`hover:underline ${wo.completed ? "text-ok" : "text-accent"}`} title="Review this session">
+                                {wo.completed ? "done" : "in progress"} · {wo.loggedSets} →
+                              </Link>
+                            )}
                             {wo && !wo.completed && wo.plannedDate && wo.plannedDate < data.today && wo.loggedSets === 0 && <span className="text-bad">missed</span>}
                           </div>
                         </div>

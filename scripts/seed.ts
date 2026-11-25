@@ -400,7 +400,7 @@ async function main() {
       const inc = ctx.incrementFor(cell.exerciseId, unit);
       const allGroups = cell.groups.map((g) => g.sg);
       let topSet: TopSetRef | null = null;
-      let setIndex = 0;
+      let minute = 0; // for realistic timestamps
 
       for (const [gi, g] of cell.groups.entries()) {
         const sg = g.sg;
@@ -441,7 +441,7 @@ async function main() {
             plannedExerciseId: cell.plannedExerciseId,
             setGroupId: g.id,
             exerciseId: performedExerciseId,
-            setIndex: setIndex++,
+            setIndex: k, // numbered within its set group
             weightKg,
             weightEntered: displayValue,
             unitEntered: unit,
@@ -450,7 +450,7 @@ async function main() {
             videoUrl: sg.mode === "workUp" && w.week === 1 ? "https://youtu.be/dQw4w9WgXcQ" : null,
             prescriptionSnapshot: snapshot,
             deviations,
-            performedAt: new Date(`${w.date}T18:${String(10 + setIndex).padStart(2, "0")}:00Z`),
+            performedAt: new Date(`${w.date}T18:${String(10 + minute++).padStart(2, "0")}:00Z`),
           });
           if (!isBackoff(sg)) topSet = { weightKg, reps, rpe };
           if (sg.mode === "repeatUntil" && rpe !== null && sg.repeatUntilRpe !== undefined && rpe >= sg.repeatUntilRpe) break;
@@ -464,7 +464,7 @@ async function main() {
         await db.insert(s.loggedSets).values({
           workoutId: w.id,
           exerciseId: ex("Face Pull"),
-          setIndex: 100 + k,
+          setIndex: k,
           weightKg: 20,
           weightEntered: 20,
           unitEntered: "kg",

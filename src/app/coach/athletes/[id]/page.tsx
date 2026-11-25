@@ -8,6 +8,7 @@ import { addDays, daysBetween, formatShortDate, mondayOf, todayISO } from "@/lib
 import { loadAthleteContext } from "@/server/athlete-context";
 import { listTemplateBlocks } from "@/server/editor-data";
 import { NewBlockForm } from "@/components/new-block-form";
+import { recentSessionsForCoach } from "@/server/logging";
 import { AthleteSettingsForm, DeleteButton, InviteButton, OverrideForm, TmForm } from "./client";
 import { deleteExerciseOverride, deleteTrainingMax } from "@/app/actions/coach";
 
@@ -36,6 +37,7 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
     : [];
   const ctx = await loadAthleteContext(id);
   const templates = await listTemplateBlocks();
+  const recent = await recentSessionsForCoach(db, id);
   const nextMonday = mondayOf(today) === today ? today : addDays(mondayOf(today), 7);
   const exName = new Map(exs.map((e) => [e.id, e.name]));
   const MAIN = ["Squat", "Bench Press", "Deadlift"];
@@ -102,6 +104,31 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
               />
             </div>
           </details>
+        </section>
+
+        {/* Recent sessions */}
+        <section className="card p-4">
+          <h2 className="mb-3 font-semibold">Recent sessions</h2>
+          {recent.length === 0 && <p className="text-sm text-muted">Nothing logged yet.</p>}
+          <ul className="divide-y divide-border">
+            {recent.map((r) => (
+              <li key={r.id}>
+                <Link href={`/coach/sessions/${r.id}`} className="flex items-center gap-3 py-2 text-sm hover:bg-surface-2">
+                  <span className="w-24 shrink-0 text-xs text-muted">{r.plannedDate ? formatShortDate(r.plannedDate) : "—"}</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    {r.dayName} <span className="text-xs text-muted">· {r.blockName} wk {r.weekNumber}</span>
+                  </span>
+                  <span className="flex shrink-0 gap-1.5 text-xs">
+                    <span className="text-muted">{r.loggedSets} sets</span>
+                    {!r.completed && <span className="text-accent">in progress</span>}
+                    {r.flaggedSets > 0 && <span className="rounded bg-warn-soft px-1 text-warn">{r.flaggedSets} flagged</span>}
+                    {r.painNotes > 0 && <span className="rounded bg-bad-soft px-1 text-bad">pain</span>}
+                    {r.unreadNotes > 0 && <span className="rounded bg-accent-soft px-1 text-accent">{r.unreadNotes} new</span>}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* Training maxes */}
