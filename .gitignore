@@ -1,0 +1,10 @@
+node_modules
+.next
+.data
+*.tsbuildinfo
+next-env.d.ts
+coverage
+
+# Env files hold secrets. Only the example is committed.
+.env*
+!.env.example
