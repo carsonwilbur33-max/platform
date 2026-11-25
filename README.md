@@ -56,6 +56,17 @@ Open an athlete → a block. The grid shows each training day as its own section
 
 Edits save automatically. Editing a block in progress keeps the athlete's logged sets attached; days and weeks with logged sessions can't be deleted.
 
+## Athlete app (phone)
+
+Athletes open the app to **Today**: the next session in program order (an in-progress session first; skipping a day doesn't lose their place). They can open any other session from **Program**, which shows the whole block week by week.
+
+- Each set shows the target and suggested load, prefilled; ± buttons step by the athlete's rounding increment, in the exercise's unit.
+- Backoff loads update from the top set actually logged. "Repeat until RPE" offers another set until the stop RPE (or cap) is reached.
+- Per set: note and video link (YouTube/Drive links, shown as links). Per exercise: swap, add a set. Per session: add an unplanned exercise, session notes, flags (pain, missed reps, note), Finish.
+- Deviations (RPE off target, load outside bounds, missed/extra reps) are computed on the server when the set is logged, against a snapshot of the prescription at that moment.
+
+**Coach review:** athlete page → *Recent sessions*, or the "done · N →" link on a session date in the grid. Shows planned vs. actual with e1RM, flags, notes, videos, substitutions, unplanned exercises, and sets whose prescription you edited after they were logged. Opening it marks the athlete's notes as read.
+
 **Templates** (top nav): save any block as a template, create one from scratch, and assign it to an athlete. Each assignment is an independent copy.
 **Exercises** (top nav): add custom exercises and variations, set a variation's TM ratio to its parent lift, archive ones you don't use.
 
@@ -64,7 +75,7 @@ Edits save automatically. Editing a block in progress keeps the athlete's logged
 | Command | What it does |
 |---------|--------------|
 | `npm run dev` | Dev server |
-| `npm test` | Unit tests (calculations, shorthand, bulk edits, editor operations and undo) and database integration tests |
+| `npm test` | Unit tests (calculations, shorthand, bulk edits, editor operations and undo, session logic) and database integration tests (editor, logging, access checks) |
 | `npm run lint` | Type-check |
 | `npm run db:reset` | Wipe the local database, re-migrate, re-seed (demo block is always positioned so today is in week 2) |
 | `npm run db:generate` | Generate a SQL migration after editing `src/db/schema.ts` |
@@ -110,7 +121,9 @@ src/lib/program/     athlete context (TM resolution, unit/rounding overrides), s
 src/lib/editor/      editor operations, reducer with undo inverses, grid commands (paste, fill, bulk edit…)
 src/components/editor/  the programming grid UI
 src/db/              Drizzle schema + client (PGlite or Postgres)
-src/server/          server-only data access: auth, applying editor ops to the DB, block copy, loaders
+src/lib/logging/     set rows per prescription, top-set pick, "today" session, video link check
+src/components/logging/ the athlete session logger
+src/server/          server-only data access: auth, editor ops, block copy, logging, loaders
 src/app/             Next.js routes: /login, /invite/[token], /coach/…, /athlete
 scripts/             migrate, seed, reset, create-coach
 drizzle/             SQL migrations

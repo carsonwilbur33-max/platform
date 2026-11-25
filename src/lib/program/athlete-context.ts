@@ -74,6 +74,10 @@ export class AthleteContext {
     this.settings = new Map(settings.map((s) => [s.exerciseId, s]));
   }
 
+  exercisesList(): CtxExercise[] {
+    return [...this.exercises.values()];
+  }
+
   /** TM effective on `date`: own TM, else parent's TM × ratio (athlete override → exercise default). */
   tmFor(exerciseId: string, date: string): number | null {
     const own = tmAsOf(this.tms.get(exerciseId) ?? [], date)?.weightKg ?? null;
