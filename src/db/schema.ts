@@ -264,6 +264,8 @@ export const slots = pgTable(
       .notNull()
       .references(() => blockDays.id, { onDelete: "cascade" }),
     position: integer("position").notNull(),
+    /** The row's exercise. A cell may override it for one week (a swap). */
+    exerciseId: uuid("exercise_id").references(() => exercises.id, { onDelete: "set null" }),
   },
   (t) => [index("slots_day_idx").on(t.blockDayId, t.position)],
 );

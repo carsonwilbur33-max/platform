@@ -15,6 +15,12 @@ export default async function CoachLayout({ children }: { children: React.ReactN
             <Link href="/coach" className="hover:text-text">
               Athletes
             </Link>
+            <Link href="/coach/templates" className="hover:text-text">
+              Templates
+            </Link>
+            <Link href="/coach/exercises" className="hover:text-text">
+              Exercises
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-muted">
             <span className="hidden sm:inline">{user.email}</span>

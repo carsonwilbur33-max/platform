@@ -4,8 +4,10 @@ import { notFound } from "next/navigation";
 import { db } from "@/db";
 import { athleteExerciseSettings, athletes, blocks, exercises, manualRecords, meetEntries, meets, programs, trainingMaxes } from "@/db/schema";
 import { fmtNum, formatWeight, fromKg } from "@/lib/calc/units";
-import { daysBetween, formatShortDate, todayISO } from "@/lib/dates";
+import { addDays, daysBetween, formatShortDate, mondayOf, todayISO } from "@/lib/dates";
 import { loadAthleteContext } from "@/server/athlete-context";
+import { listTemplateBlocks } from "@/server/editor-data";
+import { NewBlockForm } from "@/components/new-block-form";
 import { AthleteSettingsForm, DeleteButton, InviteButton, OverrideForm, TmForm } from "./client";
 import { deleteExerciseOverride, deleteTrainingMax } from "@/app/actions/coach";
 
@@ -33,6 +35,8 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
     ? await db.select().from(blocks).where(inArray(blocks.programId, progs.map((p) => p.id))).orderBy(asc(blocks.position))
     : [];
   const ctx = await loadAthleteContext(id);
+  const templates = await listTemplateBlocks();
+  const nextMonday = mondayOf(today) === today ? today : addDays(mondayOf(today), 7);
   const exName = new Map(exs.map((e) => [e.id, e.name]));
   const MAIN = ["Squat", "Bench Press", "Deadlift"];
   const mainLifts = MAIN.map((n) => exs.find((e) => e.name === n)).filter((e): e is (typeof exs)[number] => !!e);
@@ -66,7 +70,7 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
         {/* Programs */}
         <section className="card p-4">
           <h2 className="mb-3 font-semibold">Programs</h2>
-          {progs.length === 0 && <p className="text-sm text-muted">No programs yet. The programming grid arrives in Phase 2.</p>}
+          {progs.length === 0 && <p className="text-sm text-muted">No programs yet. Create a block below.</p>}
           {progs.map((p) => (
             <div key={p.id} className="mb-3">
               <div className="text-sm font-medium">{p.name}</div>
@@ -86,6 +90,18 @@ export default async function AthletePage({ params }: { params: Promise<{ id: st
               </ul>
             </div>
           ))}
+          <details className="mt-4 rounded-md border border-border p-3" open={progs.length === 0}>
+            <summary className="cursor-pointer text-sm font-medium">+ New block</summary>
+            <div className="mt-3">
+              <NewBlockForm
+                athleteId={id}
+                programs={progs.map((p) => ({ id: p.id, name: p.name }))}
+                templates={templates.map((t) => ({ blockId: t.blockId, label: t.blockName }))}
+                ownBlocks={blockRows.map((b) => ({ blockId: b.id, label: `${progs.find((p) => p.id === b.programId)?.name} · ${b.name}` }))}
+                defaultStart={nextMonday}
+              />
+            </div>
+          </details>
         </section>
 
         {/* Training maxes */}

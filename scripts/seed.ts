@@ -19,6 +19,7 @@ import { hashPassword } from "../src/lib/crypto";
 import { addDays, mondayOf, plannedDate, todayISO } from "../src/lib/dates";
 import { evaluateLoggedSet } from "../src/lib/program/evaluate-set";
 import { loadAthleteContext } from "../src/server/athlete-context";
+import { copyBlock } from "../src/server/block-ops";
 
 // Deterministic randomness so the demo looks the same every time.
 let seed = 42;
@@ -344,7 +345,7 @@ async function main() {
     const [bd] = await db.insert(s.blockDays).values({ blockId: block.id, position: di, name: day.name, weekday: day.weekday }).returning();
     const slotRows = await db
       .insert(s.slots)
-      .values(day.rows.map((_, position) => ({ blockDayId: bd.id, position })))
+      .values(day.rows.map((row, position) => ({ blockDayId: bd.id, position, exerciseId: ex(row.ex) })))
       .returning();
     for (const [wi, week] of weekRows.entries()) {
       const date = plannedDate(blockStart, wi, day.weekday);
@@ -378,6 +379,10 @@ async function main() {
       byWorkout.set(w.id, cells);
     }
   }
+
+  // A template made from the demo block (before any logs), to try assigning.
+  const [tpl] = await db.insert(s.programs).values({ name: "4-week strength", isTemplate: true }).returning();
+  await copyBlock(db, block.id, { programId: tpl.id, name: "4-week strength", startDate: null });
 
   // ---- Simulated logs for sessions before today ----
   const ctx = await loadAthleteContext(alex.id);
