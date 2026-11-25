@@ -34,9 +34,16 @@ Stop `npm run dev` before running database scripts: the embedded database allows
 | `npm run db:migrate` | Apply migrations |
 | `npm run create-coach -- you@example.com "Your Name"` | Create/reset the coach login (prompts for password) |
 
-## Hosted database
+## Environment variables
 
-Set `DATABASE_URL` (Neon / Supabase connection string) in `.env` and the app switches from PGlite to Postgres automatically. `db:reset` refuses to touch a hosted database unless `ALLOW_RESET=1`.
+None are required to run locally. To override anything, copy `.env.example` to `.env` (or `.env.local`); both the app and the database scripts read it. Env files other than `.env.example` are git-ignored.
+
+| Variable | Needed? | Purpose |
+|----------|---------|---------|
+| `DATABASE_URL` | Production only | Hosted Postgres (Neon/Supabase). Unset = embedded local database in `.data/`. |
+| `SEED_COACH_EMAIL` | Optional | Demo coach login created by `npm run setup` (default `coach@example.com`). |
+| `SEED_COACH_PASSWORD` | Optional | Its password (default `changeme123`). |
+| `ALLOW_RESET` | Never in a file | Set to `1` on the command line to let `db:reset` wipe a hosted database. |
 
 ## Layout
 

@@ -1,3 +1,4 @@
+import "./env";
 import { migrate as migratePglite } from "drizzle-orm/pglite/migrator";
 import { migrate as migratePostgres } from "drizzle-orm/postgres-js/migrator";
 import fs from "node:fs";

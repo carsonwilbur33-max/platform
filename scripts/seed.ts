@@ -6,6 +6,7 @@
  *  - a 4-week strength block using every prescription type, positioned so that
  *    today falls in week 2, with week 1 + earlier week-2 sessions logged
  */
+import "./env";
 import { count, eq } from "drizzle-orm";
 import { db } from "../src/db";
 import * as s from "../src/db/schema";

@@ -3,6 +3,7 @@
  *   npm run create-coach -- you@example.com "Your Name"
  * Prompts for the password so it never lands in shell history.
  */
+import "./env";
 import { eq } from "drizzle-orm";
 import { createInterface } from "node:readline/promises";
 import { db } from "../src/db";

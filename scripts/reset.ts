@@ -1,3 +1,4 @@
+import "./env";
 import fs from "node:fs";
 import { PGLITE_DIR, usingPglite } from "../src/db";
 
