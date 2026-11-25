@@ -115,7 +115,7 @@ blocks           id, program_id, position, name, kind(hypertrophy|strength|peak|
                  start_date, notes
 weeks            id, block_id, position, notes
 block_days       id, block_id, position, name, weekday?      ← "Day 1" row group
-slots            id, block_day_id, position                  ← grid row
+slots            id, block_day_id, position, exercise_id?    ← grid row (its usual exercise)
 workouts         id, week_id, block_day_id, planned_date, completed_at, athlete_notes
 planned_exercises
                  id, workout_id, slot_id?, exercise_id, position, modifiers(jsonb),
@@ -139,12 +139,20 @@ Integrity rules that protect logged data while editing an in-progress block:
 - A workout (week × day) with logged sets cannot be deleted; the grid warns and offers to clear only the prescription.
 - Templates are programs with `is_template = true` and no athlete. Assigning one deep-copies it, so editing the athlete's copy never touches the template.
 
+## Editor architecture (Phase 2)
+
+- Every grid edit is an **operation** (`src/lib/editor/ops.ts`): set/clear a cell, add/remove/move a row, set a row's exercise, add/remove/rename/move a day, add/remove a week. IDs are generated in the browser.
+- The browser applies operations to its local state immediately (`state.ts` reducer) and records their **inverse** for undo/redo; a queue sends them to the server in order.
+- The server validates and applies the same operations in one transaction per batch (`src/server/block-ops.ts`). If one fails, the batch rolls back and the editor reloads the saved version.
+- Editing a cell updates its set groups **in place by position**, so logged sets stay linked. Days/weeks with logged sessions can't be deleted; a logged row can be reordered but not moved to another day.
+- Integration tests run long edit sequences through both the reducer and a real (in-memory) Postgres and require identical results, including undoing everything.
+
 ## Phases
 
 | Phase | Contents | Done when |
 |-------|----------|-----------|
-| **1. Foundation** | Scaffold, schema + migrations, auth (login, roles, invite links), calculation library (units, rounding, RPE chart, e1RM, load suggestion, deviation flags, shorthand parser/formatter) with unit tests, seed (coach, demo athlete, exercise library, TMs, 4-week block using every prescription type), coach athlete list/settings/TMs, read-only block view with suggested loads. | `npm test` passes; seeded block renders with correct loads; invite flow works. |
-| **2. Programming grid** | Weeks-side-by-side grid, keyboard nav + inline shorthand editing with live parse errors and load previews, exercise picker/library (custom + variations), modifiers/rest/notes, copy/paste/duplicate days/weeks/blocks, bulk edit (e.g. +2.5%/week), undo/redo, templates (save/assign), safe editing of in-progress blocks, meet countdown in the header. | You can write a full block from the keyboard. |
+| **1. Foundation** ✅ | Scaffold, schema + migrations, auth (login, roles, invite links), calculation library (units, rounding, RPE chart, e1RM, load suggestion, deviation flags, shorthand parser/formatter) with unit tests, seed (coach, demo athlete, exercise library, TMs, 4-week block using every prescription type), coach athlete list/settings/TMs, read-only block view with suggested loads. | `npm test` passes; seeded block renders with correct loads; invite flow works. |
+| **2. Programming grid** ✅ | Weeks-side-by-side grid, keyboard nav + inline shorthand editing with live parse errors and load previews, exercise picker/library (custom + variations), modifiers/rest/notes, copy/paste/duplicate days/weeks/blocks, bulk edit (e.g. +2.5%/week), undo/redo, templates (save/assign), safe editing of in-progress blocks, meet countdown in the header. | You can write a full block from the keyboard. |
 | **3. Athlete logging** | Mobile-first Today view, prescription + suggested loads, log weight/reps/RPE/notes/video link per set, live backoff loads from the actual top set, repeat-until flow, unprescribed sets + substitutions, flags (pain, missed reps), deviation flags, whole-block read-only view. | An athlete can run a session on a phone. |
 | **4. Dashboard & analytics** | Roster (trained / missed / unread notes / PRs), per-athlete e1RM trends, weekly volume (sets, reps, tonnage), average intensity, compliance, training history, manual past maxes, RPE chart editor, CSV export. | You can review all athletes in a couple of minutes. |
 | **5. Meets** | Meets + entries, countdown everywhere relevant, attempt planner suggesting openers/seconds/thirds from recent e1RM and top sets, editable. | Attempts planned from data. |
