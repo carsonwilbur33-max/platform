@@ -1,9 +1,19 @@
 import "./env";
 import fs from "node:fs";
-import { PGLITE_DIR, usingPglite } from "../src/db";
+import { assertLocalDbFree, LocalDbError, PGLITE_DIR, PGLITE_LOCK, usingPglite } from "../src/db";
 
 if (usingPglite()) {
+  try {
+    assertLocalDbFree();
+  } catch (e) {
+    if (e instanceof LocalDbError) {
+      console.error(e.message);
+      process.exit(1);
+    }
+    throw e;
+  }
   fs.rmSync(PGLITE_DIR, { recursive: true, force: true });
+  fs.rmSync(PGLITE_LOCK, { force: true });
   console.log("Deleted local database (.data/pglite).");
 } else if (process.env.ALLOW_RESET === "1") {
   const { default: postgres } = await import("postgres");
