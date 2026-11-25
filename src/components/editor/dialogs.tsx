@@ -4,28 +4,28 @@ import { useEffect, useRef, useState } from "react";
 import { BULK_EDIT_LABELS, type BulkEdit, type BulkEditKind } from "@/lib/calc/bulk-edit";
 import type { Unit } from "@/lib/calc/units";
 
-function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+function Modal({ title, onClose, children, wide = false }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     ref.current?.querySelector<HTMLElement>("input, select, button")?.focus();
   }, []);
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-[10vh]"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-4 pt-[8vh]"
       onMouseDown={onClose}
       onKeyDown={(e) => {
         e.stopPropagation();
         if (e.key === "Escape") onClose();
       }}
     >
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className="card w-full max-w-lg p-5 shadow-xl" onMouseDown={(e) => e.stopPropagation()}>
-        <div className="mb-4 flex items-center justify-between">
+      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} className={`card flex max-h-[84vh] w-full flex-col p-5 shadow-xl ${wide ? "max-w-5xl" : "max-w-lg"}`} onMouseDown={(e) => e.stopPropagation()}>
+        <div className="mb-4 flex shrink-0 items-center justify-between">
           <h2 className="font-semibold">{title}</h2>
-          <button className="text-muted hover:text-text" onClick={onClose} aria-label="Close">
+          <button className="rounded px-1.5 text-lg leading-none text-muted outline-none hover:text-text focus-visible:ring-2 focus-visible:ring-accent/40" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
-        {children}
+        <div className="min-h-0 overflow-y-auto">{children}</div>
       </div>
     </div>
   );
@@ -152,30 +152,28 @@ export const SHORTHAND: [string, string][] = [
   ["top 1 @8; 4x4 -8%", "Several set groups (; or Shift+Enter)"],
 ];
 
+function ReferenceList({ heading, rows, mono }: { heading: string; rows: [string, string][]; mono: "key" | "example" }) {
+  return (
+    <section className="min-w-0">
+      <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">{heading}</h3>
+      <dl className="divide-y divide-border rounded-md border border-border">
+        {rows.map(([k, v]) => (
+          <div key={k} className="grid grid-cols-[minmax(0,11rem)_minmax(0,1fr)] gap-3 px-3 py-1.5 sm:grid-cols-[minmax(0,14rem)_minmax(0,1fr)]">
+            <dt className={`break-words text-xs leading-5 ${mono === "key" ? "font-mono" : "font-mono font-medium"}`}>{k}</dt>
+            <dd className="text-sm leading-5 text-muted">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export function HelpDialog({ onClose }: { onClose: () => void }) {
   return (
-    <Modal title="Keyboard & shorthand" onClose={onClose}>
-      <div className="grid gap-5 text-sm sm:grid-cols-2">
-        <table>
-          <tbody>
-            {SHORTCUTS.map(([k, v]) => (
-              <tr key={k} className="align-top">
-                <td className="whitespace-nowrap py-0.5 pr-3 font-mono text-xs">{k}</td>
-                <td className="py-0.5 text-muted">{v}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <table>
-          <tbody>
-            {SHORTHAND.map(([k, v]) => (
-              <tr key={k} className="align-top">
-                <td className="whitespace-nowrap py-0.5 pr-3 font-mono text-xs">{k}</td>
-                <td className="py-0.5 text-muted">{v}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <Modal title="Keyboard & shorthand" onClose={onClose} wide>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <ReferenceList heading="Keyboard" rows={SHORTCUTS} mono="key" />
+        <ReferenceList heading="Prescription shorthand" rows={SHORTHAND} mono="example" />
       </div>
     </Modal>
   );
