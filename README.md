@@ -45,6 +45,25 @@ None are required to run locally. To override anything, copy `.env.example` to `
 | `SEED_COACH_PASSWORD` | Optional | Its password (default `changeme123`). |
 | `ALLOW_RESET` | Never in a file | Set to `1` on the command line to let `db:reset` wipe a hosted database. |
 
+## Troubleshooting
+
+**"The local database is already open in another process"**: another copy of the app (or a script) is using `.data/pglite`. Only one can at a time. Close other terminals running `npm run dev`, or end leftover "Node.js JavaScript Runtime" processes in Task Manager. On Windows PowerShell, this stops every Node process:
+
+```powershell
+Get-Process node -ErrorAction SilentlyContinue | Stop-Process
+```
+
+**"The local database in .data/pglite could not start"**: the local database was damaged, usually by a crash or by two copies running at once. Stop all copies (as above), then rebuild it with the demo data:
+
+```bash
+npm run db:reset
+npm run dev
+```
+
+**Windows: "running scripts is disabled on this system"**: run `Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned` once, or type `npm.cmd` instead of `npm`.
+
+Stop the dev server with **Ctrl+C**. It closes the database cleanly. Avoid closing the terminal window while the server is running.
+
 ## Layout
 
 ```
